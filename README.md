@@ -86,6 +86,31 @@ python test_advanced.py
 
 **Note:** To achieve the optimal performance reported in our paper, please adjust the hyperparameter k value accordingly.
 
+## Cursor update watcher
+
+This repository also includes a small utility for checking official Cursor updates
+from the public changelog, blog, and the official X account snapshot.
+
+Run it immediately:
+
+```bash
+python3 cursor_updates_watch.py --force
+```
+
+Run it behind an hourly scheduler but only execute the real check at 9am
+(`Asia/Shanghai` by default):
+
+```bash
+python3 cursor_updates_watch.py
+```
+
+The watcher writes:
+
+- runtime state to `.cursor_updates/state.json`
+- markdown reports to `.cursor_updates/reports/`
+
+Both paths are ignored by Git so the repository stays clean between runs.
+
 **Categories Information:** The LoCoMo dataset contains the following categories:
 * Category 1: Multi-hop
 * Category 2: Temporal
