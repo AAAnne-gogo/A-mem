@@ -1,0 +1,44 @@
+{
+  "last_successful_run_at": "2026-03-08T07:10:16.684524+08:00",
+  "last_successful_local_date": "2026-03-08",
+  "seen_ids": {
+    "changelog": [
+      "https://cursor.com/changelog/03-05-26",
+      "https://cursor.com/changelog/03-04-26",
+      "https://cursor.com/changelog/2-6",
+      "https://cursor.com/changelog/02-26-26",
+      "https://cursor.com/changelog/02-24-26"
+    ],
+    "blog": [
+      "https://cursor.com/blog/automations",
+      "https://cursor.com/blog/jetbrains-acp",
+      "https://cursor.com/blog/cursor-support",
+      "https://cursor.com/blog/planetscale",
+      "https://cursor.com/blog/third-era",
+      "https://cursor.com/blog/bugbot-autofix",
+      "https://cursor.com/blog/agent-computer-use",
+      "https://cursor.com/blog/agent-sandboxing"
+    ],
+    "x": [
+      "8f95e638abb3aef7be8dbfc662546d33edbc8ecd",
+      "37cc609706db5964a012d63bd5dc94a76ad1a490",
+      "aa5ed86764b82a4e83bd2b927ff92ef7f99c6ee0",
+      "993ef3520eb2f222fa4f87fba1b0e0d4c0189445",
+      "e731974f42ee488c82b9700ea73eafc7a3531598",
+      "a2ed9541dc46fa131114cc332d740073dc977797",
+      "b2da2dcd72522ac8fb9fbdd0ee9202c49b11c9e9",
+      "fa469d84f15fe0395ab6d0b5d2f0c99831419035",
+      "a7352a1098daecc2543360863c52cb719cdb2d84"
+    ]
+  },
+  "timezone": "Asia/Shanghai",
+  "latest_report": {
+    "path": "reports/cursor-updates/2026-03-08.md",
+    "generated_at": "2026-03-08T07:10:16.684524+08:00",
+    "counts": {
+      "changelog": 5,
+      "blog": 8,
+      "x": 9
+    }
+  }
+}
