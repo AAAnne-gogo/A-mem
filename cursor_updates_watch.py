@@ -6,6 +6,7 @@ import html
 import json
 import re
 import sys
+import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -19,18 +20,23 @@ from zoneinfo import ZoneInfo
 USER_AGENT = "Mozilla/5.0 (Cursor Updates Watcher)"
 CURSOR_SITEMAP_URL = "https://cursor.com/marketing/sitemap.xml"
 X_FEED_URLS = (
-    "https://r.jina.ai/http://r.jina.ai/http://x.com/cursor_ai",
+    "https://r.jina.ai/http://x.com/cursor_ai",
+    "https://r.jina.ai/http://twitter.com/cursor_ai",
     "https://r.jina.ai/http://x.com/cursor_ai?output=1",
 )
 LOCAL_TIMEZONE = ZoneInfo("Asia/Shanghai")
 SCHEDULED_HOUR = 9
 FETCH_TIMEOUT_SECONDS = 30
+FETCH_RETRY_ATTEMPTS = 4
+RETRYABLE_HTTP_STATUS_CODES = {403, 429, 500, 502, 503, 504}
 ENTRY_WINDOW = 8
 SEEN_LIMIT = 200
 
 ROOT = Path(__file__).resolve().parent
 REPORT_DIR = ROOT / ".cursor_updates"
-STATE_PATH = REPORT_DIR / "seen_state.json"
+HISTORY_DIR = REPORT_DIR / "history"
+STATE_PATH = REPORT_DIR / "state.json"
+LEGACY_STATE_PATH = REPORT_DIR / "seen_state.json"
 LATEST_REPORT_PATH = REPORT_DIR / "latest_report.md"
 FRIENDLY_REPORT_PATH = ROOT / "cursor_updates.md"
 
@@ -54,6 +60,10 @@ class RunResult:
     skipped: bool
     reason: str
     report: str
+
+
+def default_state() -> dict[str, Any]:
+    return {"last_scheduled_run_date": None, "seen": {"blog": [], "changelog": [], "x": []}}
 
 
 def normalize_whitespace(value: str) -> str:
@@ -97,9 +107,25 @@ def format_timestamp(value: datetime | None) -> str:
 
 def fetch_text(url: str) -> str:
     request = Request(url, headers={"User-Agent": USER_AGENT})
-    with urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:
-        charset = response.headers.get_content_charset() or "utf-8"
-        return response.read().decode(charset, errors="replace")
+    last_error: Exception | None = None
+
+    for attempt in range(1, FETCH_RETRY_ATTEMPTS + 1):
+        try:
+            with urlopen(request, timeout=FETCH_TIMEOUT_SECONDS) as response:
+                charset = response.headers.get_content_charset() or "utf-8"
+                return response.read().decode(charset, errors="replace")
+        except HTTPError as exc:
+            last_error = exc
+            if exc.code not in RETRYABLE_HTTP_STATUS_CODES or attempt == FETCH_RETRY_ATTEMPTS:
+                break
+        except (URLError, TimeoutError, OSError, ValueError) as exc:
+            last_error = exc
+            if attempt == FETCH_RETRY_ATTEMPTS:
+                break
+
+        time.sleep(2 ** (attempt - 1))
+
+    raise FetchError(f"failed to fetch {url}: {last_error}")
 
 
 def fetch_first_success(urls: Iterable[str]) -> str:
@@ -107,19 +133,22 @@ def fetch_first_success(urls: Iterable[str]) -> str:
     for url in urls:
         try:
             return fetch_text(url)
-        except (HTTPError, URLError, TimeoutError, ValueError) as exc:
+        except FetchError as exc:
             last_error = exc
     raise FetchError(f"all remote sources failed: {last_error}")
 
 
 def load_state() -> dict[str, Any]:
-    if not STATE_PATH.exists():
-        return {"last_scheduled_run_date": None, "seen": {"blog": [], "changelog": [], "x": []}}
+    for path in (STATE_PATH, LEGACY_STATE_PATH):
+        if not path.exists():
+            continue
 
-    try:
-        return json.loads(STATE_PATH.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {"last_scheduled_run_date": None, "seen": {"blog": [], "changelog": [], "x": []}}
+        try:
+            return json.loads(path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            return default_state()
+
+    return default_state()
 
 
 def write_state(state: dict[str, Any]) -> None:
@@ -127,10 +156,14 @@ def write_state(state: dict[str, Any]) -> None:
     STATE_PATH.write_text(json.dumps(state, ensure_ascii=True, indent=2) + "\n", encoding="utf-8")
 
 
-def write_report(report: str) -> None:
+def write_report(now_utc: datetime, report: str, persist_history: bool) -> None:
     REPORT_DIR.mkdir(parents=True, exist_ok=True)
     LATEST_REPORT_PATH.write_text(report, encoding="utf-8")
     FRIENDLY_REPORT_PATH.write_text(report, encoding="utf-8")
+    if persist_history:
+        HISTORY_DIR.mkdir(parents=True, exist_ok=True)
+        local_date = now_utc.astimezone(LOCAL_TIMEZONE).date().isoformat()
+        (HISTORY_DIR / f"{local_date}.md").write_text(report, encoding="utf-8")
 
 
 def should_run_now(now_utc: datetime, state: dict[str, Any], force: bool) -> tuple[bool, str]:
@@ -426,7 +459,7 @@ def run(force: bool = False, now_utc: datetime | None = None) -> RunResult:
     x_with_flags = annotate_newness(x_updates, set(seen.get("x", [])))
 
     report = render_report(now_utc, reason, blog_with_flags, changelog_with_flags, x_with_flags)
-    write_report(report)
+    write_report(now_utc, report, persist_history=not force)
 
     if not force:
         local_date = now_utc.astimezone(LOCAL_TIMEZONE).date().isoformat()

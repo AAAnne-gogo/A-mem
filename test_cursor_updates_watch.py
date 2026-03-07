@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import json
+import tempfile
 import unittest
 from datetime import UTC, datetime
-from unittest.mock import Mock, patch
+from pathlib import Path
+from urllib.error import HTTPError
+from unittest.mock import MagicMock, Mock, patch
 
 import cursor_updates_watch as watch
 
@@ -103,6 +107,22 @@ We're introducing Cursor Automations to build always-on agents.
 
 
 class CursorUpdatesWatchTests(unittest.TestCase):
+    @patch.object(watch.time, "sleep", return_value=None)
+    @patch.object(watch, "urlopen")
+    def test_fetch_text_retries_transient_http_error(self, urlopen_mock: Mock, _: Mock) -> None:
+        response = MagicMock()
+        response.__enter__.return_value = response
+        response.headers.get_content_charset.return_value = "utf-8"
+        response.read.return_value = b"ok"
+
+        urlopen_mock.side_effect = [
+            HTTPError("https://example.com", 429, "rate limited", hdrs=None, fp=None),
+            response,
+        ]
+
+        self.assertEqual(watch.fetch_text("https://example.com"), "ok")
+        self.assertEqual(urlopen_mock.call_count, 2)
+
     def test_parse_sitemap_entries_sorts_latest_first(self) -> None:
         blog_entries = watch.parse_sitemap_entries(SITEMAP_XML, "blog")
         changelog_entries = watch.parse_sitemap_entries(SITEMAP_XML, "changelog")
@@ -174,6 +194,48 @@ class CursorUpdatesWatchTests(unittest.TestCase):
         )
         self.assertFalse(can_run)
         self.assertIn("already completed scheduled run", reason)
+
+    def test_load_state_supports_legacy_state_path(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            state_path = temp_root / "state.json"
+            legacy_state_path = temp_root / "seen_state.json"
+            legacy_state = {"last_scheduled_run_date": "2026-03-08", "seen": {"blog": ["b"], "changelog": [], "x": []}}
+            legacy_state_path.write_text(json.dumps(legacy_state), encoding="utf-8")
+
+            with patch.multiple(
+                watch,
+                STATE_PATH=state_path,
+                LEGACY_STATE_PATH=legacy_state_path,
+            ):
+                self.assertEqual(watch.load_state(), legacy_state)
+
+    def test_write_report_persists_history_for_scheduled_runs(self) -> None:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            temp_root = Path(temp_dir)
+            report_dir = temp_root / ".cursor_updates"
+            history_dir = report_dir / "history"
+            latest_report_path = report_dir / "latest_report.md"
+            friendly_report_path = temp_root / "cursor_updates.md"
+            state_path = report_dir / "state.json"
+            legacy_state_path = report_dir / "seen_state.json"
+            now_utc = datetime(2026, 3, 8, 1, 1, tzinfo=UTC)
+
+            with patch.multiple(
+                watch,
+                REPORT_DIR=report_dir,
+                HISTORY_DIR=history_dir,
+                LATEST_REPORT_PATH=latest_report_path,
+                FRIENDLY_REPORT_PATH=friendly_report_path,
+                STATE_PATH=state_path,
+                LEGACY_STATE_PATH=legacy_state_path,
+            ):
+                watch.write_report(now_utc, "hello\n", persist_history=True)
+
+            self.assertEqual(latest_report_path.read_text(encoding="utf-8"), "hello\n")
+            self.assertEqual(friendly_report_path.read_text(encoding="utf-8"), "hello\n")
+            history_report_path = history_dir / "2026-03-08.md"
+            self.assertEqual(history_report_path.read_text(encoding="utf-8"), "hello\n")
 
     @patch.object(watch, "write_report")
     @patch.object(watch, "write_state")
