@@ -1,0 +1,24 @@
+{
+  "last_run_date": "2026-03-08",
+  "seen_blog_urls": [
+    "https://cursor.com/blog/automations",
+    "https://cursor.com/blog/jetbrains-acp",
+    "https://cursor.com/blog/cursor-support",
+    "https://cursor.com/blog/planetscale"
+  ],
+  "seen_changelog_urls": [
+    "https://cursor.com/changelog/03-05-26",
+    "https://cursor.com/changelog/03-04-26",
+    "https://cursor.com/changelog/2-6"
+  ],
+  "seen_x_posts": [
+    "We're introducing Cursor Automations to build always-on agents.",
+    "GPT 5.4 is now available in Cursor! We've found it to be more natural and assertive than previous models. It's currently the leader on our internal benchmarks.",
+    "Cursor can now continuously monitor and improve your codebase. Automations run based on triggers and instructions you define.",
+    "Cursor is now available in JetBrains IDEs through the Agent Client Protocol. We believe Cursor discovered a novel solution to Problem Six of the First Proof challenge, a set of math research problems that approximate the work of Stanford, MIT, Berkeley academics. Cursor's solution yields stronger results than the official, human-written solution.",
+    "Cursor now supports MCP Apps. Agents can render interactive UIs in your conversations.",
+    "Create and share private plugins with team marketplaces.",
+    "See everything new in Cursor:",
+    "Cursor can now automatically fix issues it finds in PRs with Bugbot Autofix."
+  ]
+}
