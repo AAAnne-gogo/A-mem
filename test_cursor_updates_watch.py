@@ -199,6 +199,55 @@ class CursorUpdatesWatchTests(unittest.TestCase):
             self.assertIn("Cursor Daily Updates", watch.PUBLIC_REPORT_PATH.read_text(encoding="utf-8"))
             self.assertEqual(watch.STATE_PATH.read_text(encoding="utf-8"), before)
 
+    def test_force_run_does_not_backfill_older_blog_posts_as_new(self) -> None:
+        with isolated_runtime():
+            recent_urls = [f"https://cursor.com/blog/post-{index:02d}" for index in range(12)]
+            sitemap = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">']
+            payloads = {watch.CHANGELOG_URL: CHANGELOG_HTML}
+            for index, url in enumerate(recent_urls, start=1):
+                sitemap.append("  <url>")
+                sitemap.append(f"    <loc>{url}</loc>")
+                sitemap.append(f"    <lastmod>2026-03-{20 - index:02d}T12:00:00.000Z</lastmod>")
+                sitemap.append("  </url>")
+                payloads[url] = f"""
+<html>
+  <head>
+    <meta property="og:title" content="Post {index:02d} · Cursor" />
+    <meta name="description" content="Summary for post {index:02d}." />
+  </head>
+  <body><time dateTime="2026-03-{20 - index:02d}T12:00:00.000Z">Mar</time></body>
+</html>
+"""
+            sitemap.append("</urlset>")
+            payloads[watch.BLOG_SITEMAP_URL] = "\n".join(sitemap)
+
+            state = {
+                "last_success_local_date": "2026-03-08",
+                "last_success_run_at": "2026-03-08T01:00:00+00:00",
+                "seen": {
+                    "changelog": ["/changelog/03-05-26", "/changelog/2-6"],
+                    "blog": recent_urls[:10],
+                    "x": [],
+                },
+            }
+            watch.write_state(state)
+
+            def custom_fetcher(url: str) -> str:
+                return payloads[url]
+
+            result = watch.run_watch(
+                force=True,
+                now=datetime(2026, 3, 8, 2, 0, tzinfo=timezone.utc),
+                fetcher=custom_fetcher,
+                x_fetcher=fake_x_fetcher,
+            )
+
+            self.assertEqual(result.status, "ok")
+            report = watch.PUBLIC_REPORT_PATH.read_text(encoding="utf-8")
+            self.assertIn("### Blog\n- No new items detected.", report)
+            self.assertNotIn("Post 11", report)
+            self.assertNotIn("Post 12", report)
+
     def test_scheduled_success_updates_state_and_blocks_second_run(self) -> None:
         with isolated_runtime():
             first = watch.run_watch(

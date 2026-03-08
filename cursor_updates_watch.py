@@ -431,12 +431,8 @@ def collect_blog_posts(
 ) -> list[BlogPost]:
     sitemap_xml = fetcher(BLOG_SITEMAP_URL)
     candidates = parse_blog_sitemap(sitemap_xml)
-    selected_urls: list[dict[str, str]] = []
-    for candidate in candidates:
-        if len(selected_urls) < max_items or candidate["url"] not in existing_seen:
-            selected_urls.append(candidate)
-        if len(selected_urls) >= max(max_items, 10):
-            break
+    recent_window = max(max_items, 10)
+    selected_urls = candidates[:recent_window]
 
     posts: list[BlogPost] = []
     for candidate in selected_urls:
