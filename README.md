@@ -112,4 +112,40 @@ If you use this code in your research, please cite our work:
 
 This project is licensed under the MIT License. See LICENSE for details.
 
+## Cursor daily updates automation
+
+This repository also includes a small watcher script for Cursor product updates:
+
+- `cursor_updates_watch.py`
+- `test_cursor_updates_watch.py`
+
+What it checks:
+
+- Cursor changelog: `https://cursor.com/changelog/rss.xml`
+- Cursor blog: article pages discovered from `https://cursor.com/marketing/sitemap.xml`
+- Cursor official X account: `@cursor_ai` via the public syndication timeline
+
+Default behavior:
+
+- Designed for an hourly automation trigger
+- Only performs the real update during the `09:00` hour in `Asia/Shanghai`
+- Writes the markdown report to `cursor_updates.md`
+- Stores deduplication state in `.cursor_updates/state.json`
+
+Examples:
+
+```bash
+# Normal scheduled run (no-op outside the 09:00 window)
+python3 cursor_updates_watch.py
+
+# Run immediately and refresh the markdown report without changing state
+python3 cursor_updates_watch.py --force
+
+# Run immediately and also persist the latest seen-state
+python3 cursor_updates_watch.py --force --update-state
+
+# Run the parser tests
+python3 -m unittest -v test_cursor_updates_watch.py
+```
+
 
