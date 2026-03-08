@@ -86,6 +86,28 @@ python test_advanced.py
 
 **Note:** To achieve the optimal performance reported in our paper, please adjust the hyperparameter k value accordingly.
 
+## Cursor Daily Updates Automation
+
+This repository also includes a standalone watcher script for collecting official Cursor updates from:
+
+- the Cursor changelog RSS feed,
+- the Cursor blog sitemap and post metadata,
+- the official `@cursor_ai` X timeline through a public mirror.
+
+The watcher is designed for hourly automation and only produces a report during the 09:00 hour in `Asia/Shanghai` by default.
+
+```bash
+python3 cursor_updates_watch.py
+```
+
+Useful flags:
+
+- `--force`: run immediately instead of waiting for the scheduled hour
+- `--timezone`: change the timezone used for scheduling
+- `--hour`: change the scheduled hour
+- `--report-path`: override the markdown output path
+- `--state-path`: override the persisted seen-state path
+
 **Categories Information:** The LoCoMo dataset contains the following categories:
 * Category 1: Multi-hop
 * Category 2: Temporal
