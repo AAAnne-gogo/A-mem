@@ -113,3 +113,23 @@ If you use this code in your research, please cite our work:
 This project is licensed under the MIT License. See LICENSE for details.
 
 
+
+
+## Cursor updates watcher
+
+This repository also includes `cursor_updates_watch.py`, a small automation helper
+for checking official Cursor updates from:
+
+- the changelog: `https://cursor.com/changelog`
+- the blog: `https://cursor.com/en/blog`
+- the official X account: `https://x.com/cursor_ai`
+
+It is designed to run on an hourly automation trigger but only performs the
+scheduled fetch during the `09:00` hour in the `Asia/Shanghai` timezone. You can
+also force an on-demand snapshot:
+
+```bash
+python3 cursor_updates_watch.py --force
+```
+
+Unit tests for the watcher live in `test_cursor_updates_watch.py`.
