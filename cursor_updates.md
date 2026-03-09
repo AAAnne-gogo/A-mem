@@ -1,6 +1,6 @@
 # Cursor updates watch
 
-Generated at: 2026-03-09 07:12 CST
+Generated at: 2026-03-09 08:05 CST
 Run reason: forced run
 Sources:
 - Changelog RSS: https://cursor.com/changelog/rss.xml
