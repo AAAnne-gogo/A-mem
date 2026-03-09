@@ -1,6 +1,6 @@
 # Cursor updates watch
 
-Generated at: 2026-03-09 13:06 CST
+Generated at: 2026-03-09 14:11 CST
 Run reason: forced run
 Sources:
 - Changelog RSS: https://cursor.com/changelog/rss.xml
@@ -61,8 +61,8 @@ Found 14 new item(s) in this run.
 - [See everything new in Cursor: https://cursor.com/changelog/2-6](https://x.com/cursor_ai/status/2028953786807415122)
   - Published: 2026-03-04 06:00 CST
 
-- [Create and share private plugins with team marketplaces.](https://x.com/cursor_ai/status/2028953586273530206)
+- [Cursor now supports MCP Apps. Agents can render interactive UIs in your conversations.](https://x.com/cursor_ai/status/2028953584407085546)
   - Published: 2026-03-04 06:00 CST
 
-- [Cursor now supports MCP Apps. Agents can render interactive UIs in your conversations.](https://x.com/cursor_ai/status/2028953584407085546)
+- [Create and share private plugins with team marketplaces.](https://x.com/cursor_ai/status/2028953586273530206)
   - Published: 2026-03-04 06:00 CST
