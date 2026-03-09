@@ -1,7 +1,7 @@
 # Cursor updates watch
 
-Generated at: 2026-03-09 07:12 CST
-Run reason: forced run
+Generated at: 2026-03-09 09:04 CST
+Run reason: scheduled run
 Sources:
 - Changelog RSS: https://cursor.com/changelog/rss.xml
 - Blog sitemap: https://cursor.com/marketing/sitemap.xml
