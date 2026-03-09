@@ -95,6 +95,34 @@ python test_advanced.py
 
 For more details about the categories, please refer to [this GitHub issue](https://github.com/snap-research/locomo/issues/6). 
 
+## Daily Cursor updates watch
+
+This repository also includes a lightweight watcher for Cursor product updates:
+
+- Script: `python3 cursor_updates_watch.py`
+- Report output: `cursor_updates.md`
+- Local state cache: `.cursor_updates/state.json`
+- Schedule gate: runs only during the `09:00` hour in `Asia/Shanghai` unless `--force` is passed
+
+Tracked official sources:
+
+- Changelog RSS: `https://cursor.com/changelog/rss.xml`
+- Blog sitemap + article metadata from `https://cursor.com`
+- Official X posts from `https://x.com/cursor_ai`
+
+Useful commands:
+
+```bash
+# Run only if the current time is within the scheduled hour
+python3 cursor_updates_watch.py
+
+# Force a refresh regardless of time
+python3 cursor_updates_watch.py --force
+
+# Force a refresh and persist seen-state
+python3 cursor_updates_watch.py --force --update-state
+```
+
 ## Citation 📚
 
 If you use this code in your research, please cite our work:
